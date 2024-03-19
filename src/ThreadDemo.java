@@ -4,12 +4,14 @@ import java.util.concurrent.*;
 public class ThreadDemo {
 
     public static void main(String[] args) {
-        try {
-            for (int i = 0; i < 3; i++) {
-                new Thread(ThreadDemo::demo).start();
-            }
-        } catch (Exception e) {
-            System.out.println("exception is:" + e.getMessage());
+        for (int i = 0; i < 3; i++) {
+            new Thread(() -> {
+                try {
+                    demo();
+                } catch (Exception e) {
+                    System.out.println("exception is:" + e.getMessage());
+                }
+            }).start();
         }
     }
 
@@ -22,14 +24,13 @@ public class ThreadDemo {
             var subtask1 = scope.fork(ThreadDemo::hello);
             var subtask2 = scope.fork(ThreadDemo::world);
 
-            scope.join();
-            scope.throwIfFailed();
+            scope.join().throwIfFailed(RuntimeException::new);
 
             System.out.println("msg is: " + subtask1.get() + " " + subtask2.get() + " " + data);
             long finish = System.currentTimeMillis();
             long timeElapsed = finish - start;
             System.out.println("time taken in sec:" + timeElapsed / 1000);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
             System.out.println("Interruption happened");
             throw new RuntimeException(e);
         }
